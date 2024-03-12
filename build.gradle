@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'maven-publish'
 }
 
 group = 'com.fluidnotions'
@@ -32,4 +33,31 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('compileJava') {
+    inputs.files(tasks.named('processResources'))
+}
+
+
+def properties = new Properties()
+file(project.rootDir.absolutePath + "/local.properties").withInputStream { properties.load(it) }
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/fluidnotions/spring-generic-aop-retry-on-exception")
+            credentials {
+                username = properties.getProperty('github.username')
+                password = properties.getProperty('github.token')
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+            artifactId = 'spring-generic-aop-retry-on-exception'
+        }
+    }
 }
